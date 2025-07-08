@@ -1,5 +1,5 @@
 ﻿using ConsoleApp5.Interface;
-using ConsoleApp5.Stategy;
+using System.Reflection;
 
 namespace ConsoleApp5;
 
@@ -9,11 +9,17 @@ public class SuperCalculator
 
     public SuperCalculator()
     {
-        _strategies = new Dictionary<string, ICalculationStrategy>
-        {
-            { "one", new CalcOneStrategy() },
-            { "two", new CalcTwoStrategy() }
-        };
+        _strategies = Assembly.GetExecutingAssembly()
+            .GetTypes()
+            .Where(t => typeof(ICalculationStrategy).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract)
+            .Select(t =>
+            {
+                var attr = t.GetCustomAttribute<StrategyKeyAttribute>();
+                var key = attr?.Key ?? t.Name.ToLower(); 
+                var instance = (ICalculationStrategy)Activator.CreateInstance(t)!;
+                return (key, instance);
+            })
+            .ToDictionary(x => x.key, x => x.instance);
     }
 
     public string Calculate(string type, int num)

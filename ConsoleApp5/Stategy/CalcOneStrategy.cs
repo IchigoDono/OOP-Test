@@ -2,6 +2,7 @@
 
 namespace ConsoleApp5.Stategy;
 
+[StrategyKey("one")]
 public class CalcOneStrategy : ICalculationStrategy
 {
     public string Calculate(int num)
